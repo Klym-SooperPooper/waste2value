@@ -1,0 +1,26 @@
+.place1{
+    background:#E9F6EA;
+}
+
+#qrHolder img{
+    width:200px;
+    height: 200px;
+    margin:0 auto;
+    display: block;
+}
+
+.v-card__title{
+    color:orange;
+}
+
+header .layout .v-avatar{
+    border:1px solid green;
+}
+
+#adForm .v-file-input{
+    display: none;
+}
+
+#invokeUpload, .adDiv{
+    margin-bottom:15px;
+}
