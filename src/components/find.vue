@@ -10,7 +10,6 @@
         <h1 class="headline" style="color:orange">
           Мапа розміщення контейнерів
         </h1>
-        <br/>
         <v-card id="map" class="mb-12" height="300px"></v-card>
         <!--
         <v-card id="map" color="#ebfbed" class="mb-12" height="300px">
@@ -37,6 +36,7 @@ export default {
   }),
   mounted(){
     this.initMap();
+
   },
   methods:{
     initMap: function(){
@@ -65,7 +65,7 @@ export default {
         });
 
       });
-
+      document.getElementById('map').style.height = (document.getElementsByClassName('v-content')[0].offsetHeight-145)+'px';
     }
   }
 };

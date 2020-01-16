@@ -1,9 +1,15 @@
 /* eslint-disable no-alert, no-console */
 /******TO DO********/
+//try mutation for user state
+//check avatar adding
+//dialog window for sum up tokens
+//classified adding
+//pass without name?
 //+geocoder input+post ad
 //ads list
+
 //hash algo for QR generation
-//static gMap for bins
+//static gMap for bins infoWindow
 //build Android apk
 //test Android
 //build IOS
@@ -66,6 +72,8 @@ router.beforeEach((to, from, next) => {
       store.state.db.collection('users').doc(currentUser.uid).get().then(
       doc=>{
         store.state.user = doc.data();
+        if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
+        if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
         console.log('state changed');
         console.log(store.state.user);
       }
@@ -108,6 +116,8 @@ const unsubscribe = firebase.auth().onAuthStateChanged((firebaseUser) => {
         store.state.db.collection('users').doc(firebaseUser.uid).get().then(
           doc=>{
             store.state.user = doc.data();
+            if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
+            if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
             console.log('signed in user');
             console.log(store.state.user);
           }

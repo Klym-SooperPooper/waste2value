@@ -25,7 +25,8 @@
           <div class="text-center" v-if="avatarUploaded">
             <v-alert color="green lighten-2" height="40" style="padding-top:7px">Аватар оновлено!</v-alert>
           </div>
-          <img id='profileAvatar' v-bind:src="$store.state.user.avatar" width="150" />
+          <img id='profileAvatar' v-if="$store.state.user.avatar" v-bind:src="$store.state.user.avatar" width="150" />
+          <img id='profileAvatar' v-else src="" width="150" />
           <v-form ref="form" v-model="valid" lazy-validation>
               <v-file-input outlined id="avatarUpload" label="Загрузить аватар" accept="image/*" @change="uploadAvatar($event)"></v-file-input>
               <v-text-field v-model="$store.state.user.name" outlined id="userName" label="Имя" :rules="nameRules" @change="validateForm" required></v-text-field>
@@ -91,7 +92,6 @@ export default {
           var reader = new FileReader();
           reader.onload = function(e) {
             document.getElementById('profileAvatar').src = e.target.result;
-            //document.getElementById('topAvatar').src = e.target.result;
             ref.avatarUploaded = true;
             setTimeout(
               function(){
@@ -106,6 +106,15 @@ export default {
       if(this.formIsValid){
         this.$store.state.db.collection("users").doc(this.$firebase.auth().currentUser.uid).update({'name':document.getElementById('userName').value, 'email':document.getElementById('userEmail').value});
         this.updated=true;
+        let redirect = this.$router;
+
+        setTimeout(
+          function(){
+            //redirect to account
+           redirect.push({path:'qr', name:'Qr'});
+          }
+          ,3000
+        );
       } else {
          alert('Форма заповнена невірно!');
       }

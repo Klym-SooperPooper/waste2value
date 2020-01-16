@@ -18,11 +18,11 @@
 
               <v-chip v-if="$store.state.user.tokens" link to="/wallet" text-color="#07C01A" color="transparent">
                 <v-icon color="#07C01A" small>mdi-coin-outline</v-icon>
-                  {{$store.state.user.tokens}}
+                  <span id="topTokens">{{$store.state.user.tokens}}</span>
               </v-chip>
-              <v-avatar right link @click="$router.go('/profile')" size="32px">
-                <v-img id="topAvatar" v-if="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
-                <v-icon v-else color="green">mdi-account-circle</v-icon>
+              <v-avatar right size="32px" @click="goProfile">
+                <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
+                <v-icon v-show="!$store.state.user.avatar" color="green">mdi-account-circle</v-icon>
               </v-avatar>
            </v-layout>
          </v-app-bar> 
@@ -65,7 +65,12 @@
      publicPath: process.env.BASE_URL,
      bottomNav: false,
      appUser:false
-    }),   
+    }),  
+    methods:{
+      goProfile(){
+        window.location.href="/profile";
+      }
+    } 
     /*async created() {
       let ref = this;
       if(ref.$firebase.auth().currentUser){

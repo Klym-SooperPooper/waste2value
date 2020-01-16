@@ -74,16 +74,21 @@ export default {
             console.log(firebaseAuth.auth().currentUser.uid);
             var credential = firebaseAuth.auth.PhoneAuthProvider.credential(verificationId, code);
             firebaseAuth.auth().signInWithCredential(credential);
-            store.state.db.collection("users").doc(firebaseAuth.auth().currentUser.uid).set({'phone':document.getElementById('number').value},{merge: true})
-            .then(function() {
-                //redirect to account
-                redirect.push({path:'profile', name:'Profile', params:{signedup:1}});
-            })
-            .catch(function(error) {
-              //eslint-disable-next-line no-console
-              document.getElementById('verificationCode').value = '';
-              alert('Невірний код');
-              console.error("Error adding document: ", error);
+
+            let usersRef = store.state.db.collection("users").doc(firebaseAuth.auth().currentUser.uid);
+            usersRef.get()
+              .then((docSnapshot) => {
+                if (!docSnapshot.exists) {
+                  usersRef.set({'phone':document.getElementById('number').value, tokens:0, bonus:0}).then(
+                    ()=>{
+                      //redirect to account
+                      redirect.push({path:'profile', name:'Profile', params:{signedup:1}});
+                    }
+                  ) // create the document
+                } else {
+                  //redirect to account
+                  redirect.push({path:'profile', name:'Profile', params:{signedup:1}});
+                }
             });
          }
        ).catch(

@@ -24,3 +24,22 @@ header .layout .v-avatar{
 #invokeUpload, .adDiv{
     margin-bottom:15px;
 }
+
+.v-application .headline, .adDiv .v-card__title span {
+    line-height: 1.7rem!important;
+}
+
+.v-application .headline{
+    margin-bottom: 10px;
+}
+
+.v-card__title span{
+    text-shadow: 1px 1px 1px rgba(13,6,4,0.8);
+}
+
+@media (max-width: 320px){
+    .v-item-group.v-bottom-navigation--grow .v-btn{
+        width:64px!important;
+        min-width: 64px!important;
+    }
+}

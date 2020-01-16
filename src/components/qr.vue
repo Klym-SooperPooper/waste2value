@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <v-container>
     <v-layout
@@ -55,17 +56,61 @@ export default {
         //eslint-disable-next-line
         decodedString = this.IsJsonString(decodedString);
         let router = this.$router;
+        let db = this.$store.state.db;
         if(typeof decodedString === 'object'){
           //TRANSFER
           if(typeof decodedString.tokens !== 'undefined'){
             //alert('Get your '+decodedString.tokens+' tokens from '+decodedString.fromid+' !');
             //add owner of transaction
             decodedString.uid = this.$firebase.auth().currentUser.uid;
-            this.$store.state.db.collection("transactions").add(decodedString)
+            //eslint-disable-next-line
+            let getUserDocRef = db.collection('users').doc(this.$firebase.auth().currentUser.uid);
+            //eslint-disable-next-line
+            let getTransferUserDocRef = db.collection('users').doc(decodedString.fromid.toString());
+
+            db.collection("transactions").add(decodedString)
             .then(function(docRef) {
                //eslint-disable-next-line no-console
-                console.log("Document written with ID: ", docRef.id);
-                router.push({path:'wallet', name:'Wallet', params:{'transferred':decodedString.tokens}});
+                console.log("Transaction written with ID: ", docRef.id);
+                
+                //run OWNER USER transaction
+                return db.runTransaction(function(transaction) {
+                    // This code may get re-run multiple times if there are conflicts.
+                    //eslint-disable-next-line
+                    return transaction.get(getUserDocRef).then(function(getUserDoc) {
+                        if (!getUserDoc.exists) {
+                            throw "Document does not exist!";
+                        }
+                        var newTokens = getUserDoc.data().tokens + decodedString.tokens;
+                        //eslint-disable-next-line
+                        transaction.update(getUserDocRef, { tokens: newTokens });
+                        console.log("user "+getUserDoc.id+" got "+newTokens+" tokens");
+                    });
+                }).then(function() {
+                    console.log("Get user transaction successfully committed!");
+                     //run TRANSFER USER transaction
+                    return db.runTransaction(function(transaction) {
+                        // This code may get re-run multiple times if there are conflicts.
+                        //eslint-disable-next-line
+                        return transaction.get(getTransferUserDocRef).then(function(getTransferUserDoc) {
+                            if (!getTransferUserDoc.exists) {
+                                throw "Document does not exist!";
+                            }
+                            var newTokens = getTransferUserDoc.data().tokens - decodedString.tokens;
+                            //eslint-disable-next-line
+                            transaction.update(getTransferUserDocRef, { tokens: newTokens });
+                            console.log("user "+getTransferUserDoc.id+" transferred "+newTokens+" tokens");
+                        });
+                    }).then(function() {
+                        console.log("Transfer user transaction successfully committed!");
+                        //run transaction for transfer user
+                        router.push({path:'wallet', name:'Wallet', params:{'transferred':decodedString.tokens}});
+                    }).catch(function(error) {
+                        console.log("Transaction failed: ", error);
+                    });
+                }).catch(function(error) {
+                    console.log("Transaction failed: ", error);
+                });
             })
             .catch(function(error) {
               //eslint-disable-next-line no-console
@@ -74,7 +119,9 @@ export default {
            //RECYCLE transaction 
           } else if(typeof decodedString.count !=='undefined'){
             //let recycleTime = new Date(decodedString.time);
-           // alert('Thanks for '+decodedString.count+' '+recycleTime.getDate()+' '+(recycleTime.getMonth()+1)+' '+recycleTime.getFullYear());
+            // alert('Thanks for '+decodedString.count+' '+recycleTime.getDate()+' '+(recycleTime.getMonth()+1)+' '+recycleTime.getFullYear());
+            //eslint-disable-next-line
+            let getUserDocRef = db.collection('users').doc(this.$firebase.auth().currentUser.uid);
             //add owner of transaction
             decodedString.uid = this.$firebase.auth().currentUser.uid;
             //calc rates
@@ -83,11 +130,32 @@ export default {
             //calc bonuses
             decodedString.bonus = this.$bonusRate*decodedString.count;
             decodedString.bonusRate = this.$bonusRate;
-            this.$store.state.db.collection("transactions").add(decodedString)
+            db.collection("transactions").add(decodedString)
             .then(function(docRef) {
                //eslint-disable-next-line no-console
-                console.log("Document written with ID: ", docRef.id);
-                router.push({path:'wallet', name:'Wallet', params:{'transferred':decodedString.tokens, 'bonus':decodedString.bonus}});
+                console.log("Transaction written with ID: ", docRef.id);
+                      //run TRANSFER USER transaction
+                return db.runTransaction(function(transaction) {
+                    // This code may get re-run multiple times if there are conflicts.
+                    //eslint-disable-next-line
+                    return transaction.get(getUserDocRef).then(function(getUserDoc) {
+                        if (!getUserDoc.exists) {
+                            throw "Document does not exist!";
+                        }
+                        var newTokens = getUserDoc.data().tokens + decodedString.tokens;
+                        var newBonus = getUserDoc.data().bonus + decodedString.bonus;
+                        //eslint-disable-next-line
+                        transaction.update(getUserDocRef, { tokens: newTokens, bonus: newBonus});
+                        console.log("user "+getUserDoc.id+" recycled for the amount of "+newTokens+" tokens");
+                    });
+                }).then(function() {
+                    console.log("Recycling user transaction successfully committed!");
+                    //run transaction for transfer user
+                    //eslint-disable-next-line
+                    router.push({path:'wallet', name:'Wallet', params:{'transferred':decodedString.tokens}});
+                }).catch(function(error) {
+                    console.log("Transaction failed: ", error);
+                });
             })
             .catch(function(error) {
               //eslint-disable-next-line no-console

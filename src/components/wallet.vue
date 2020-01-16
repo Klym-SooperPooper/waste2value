@@ -5,17 +5,17 @@
       wrap
     >
       <v-flex>
-        <div class="text-center" v-if="transferred">
-          <v-alert color="orange lighten-2" height="40" style="padding-top:7px"><v-icon>mdi-coins</v-icon>Зараховано зелених: {{transferred}}</v-alert>
-        </div>
+        <v-snackbar class="text-center" top light color="white" v-model="snackbar">
+            <v-alert color="green lighten-2" height="40" style="padding-top:7px"><v-icon>mdi-coins</v-icon>Зараховано зелених: {{$route.params.transferred}}</v-alert>
+        </v-snackbar>
 
         <h1 class="headline" style="color:orange">
           Мій гаманець
         </h1>
         <div>
-        <v-chip v-if="tokens" text-color="#07C01A" color="transparent" style="margin-top:10px">
+          <v-chip v-if="$store.state.user.tokens" text-color="#07C01A" color="transparent" style="margin-top:10px">
             <v-icon color="#07C01A" large>mdi-coin-outline</v-icon>
-              <span class="display-1">{{tokens}}</span>
+            <span class="display-1">{{$store.state.user.tokens}}</span>
           </v-chip>
            <v-chip v-else text-color="#07C01A" color="transparent" style="margin-top:10px">
             <v-icon color="#07C01A" large>mdi-coin-outline</v-icon>
@@ -25,8 +25,7 @@
         <br/>
         <div id="placeHolder"></div>
         <v-btn dark color="green" @click="dialog = true">Переказати <v-icon>mdi-coin-outline</v-icon></v-btn>
-        
-        <v-dialog v-model="dialog" @close="alert(1)" color="#fff"> 
+        <v-dialog v-model="dialog" color="#fff">
           <v-card>
             <v-card-title v-if="!generatedTokens">Введіть суму токенів</v-card-title>
             <v-card-text v-if="!generatedTokens">
@@ -175,50 +174,16 @@ export default {
    data: () => ({
      dialog: false,
      qrGen:1,
-     tokens:0,
      bonus:0,
-     transferred:0,
      generatedTokens:false,
-     transferTokens:''
+     transferTokens:'',
+     snackbar:false
    }),
    async mounted(){
     //check for message 
     if(typeof(this.$route.params.transferred) != 'undefined'){
-      this.transferred = this.$route.params.transferred;
-    }
-    let getTokens = 0;
-    let getBonuses = 0;
-        
-    //COUNT WALLET TOKENS 
-    this.tokens = this.$store.state.user.tokens;
-    if(typeof(this.$route.params.bonus) != 'undefined' || typeof(this.$route.params.transferred) != 'undefined'){
-      let transactions = await this.$store.state.db.collection('transactions').where('uid', '==', this.$firebase.auth().currentUser.uid).get();
-      transactions.forEach(async (th) =>{
-          getTokens = getTokens+parseInt(th.data().tokens); 
-          console.log('-->'+getTokens);
-          if(typeof(th.data().bonus)!='undefined'){
-            getBonuses = getBonuses+parseInt(th.data().bonus);
-          }
-      });
-      let transfers = await this.$store.state.db.collection('transactions').where('fromid', '==', this.$firebase.auth().currentUser.uid).get();
-      let ref = this;
-      transfers.forEach(async (th) =>{
-          getTokens = getTokens-parseInt(th.data().tokens);          
-      });
-      
-      //alert(getTokens);
-      await ref.$store.state.db.collection('users').doc(ref.$firebase.auth().currentUser.uid).update({'bonus':getBonuses, 'tokens':getTokens}).then(
-        ()=>{
-          this.tokens = getTokens;
-        }
-      )
-     } else {
-       await this.$store.state.db.collection('users').doc(this.$firebase.auth().currentUser.uid).get().then(
-        (doc)=>{
-          this.tokens = doc.data().tokens;
-        }
-      )
-     }
+      this.snackbar = true;
+    }     
    },
    watch: {
     dialog(val) {
@@ -230,7 +195,7 @@ export default {
   },
    methods: {
      qrGenerate(transferTokens){
-        if(transferTokens){
+        if(transferTokens && transferTokens <= this.$store.state.user.tokens){
           this.generatedTokens = true;
           let qr = this.$qrcode(0, 'H'); 
           let transfer = {fromid:1, tokens:transferTokens,  time:Date. now()};
@@ -242,6 +207,9 @@ export default {
               document.getElementById('qrHolder').innerHTML = qr.createImgTag(4);
             }, 500
           );
+        } else {
+          this.transferTokens=0;
+          alert('Недостатньо зелених на рахунку');
         } 
      }
    }

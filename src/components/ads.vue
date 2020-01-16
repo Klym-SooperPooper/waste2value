@@ -75,7 +75,32 @@
             </template>
           </v-range-slider>
         -->
-
+          <v-card class="mx-auto adDiv" v-for="ad in ads" :key="ad.id" max-width="400">
+          <v-img v-if="ad.image" class="white--text align-end" height="200px" v-bind:src="ad.image">
+            <v-card-title><span>{{ad.title}}</span></v-card-title>
+          </v-img>
+          <v-img v-else class="white--text align-end" height="200px" src="https://firebasestorage.googleapis.com/v0/b/beeco-b0ed5.appspot.com/o/beeco-add-default.png?alt=media&amp;token=df84a672-29af-443c-8727-0dd4e66736c0">  
+            <v-card-title><span>{{ad.title}}</span></v-card-title>
+          </v-img>
+          <v-card-text class="text--primary">
+            <div>{{ad.text}}</div>
+          </v-card-text>
+          <v-chip color="transparent">
+            <v-icon color="#07C01A" small>mdi-coin-outline</v-icon>
+            {{ad.price}}
+          </v-chip>
+          <br/>
+          <v-chip color="transparent">
+            <v-icon color="grey" small>mdi-map-marker</v-icon>
+            Коростень, Житомирська область
+          </v-chip>
+          <v-card-actions>
+            <v-btn absolute bottom right v-if="ad.uid==$firebase.auth().currentUser.uid" @click="deleteAd(ad.id)"><v-icon>mdi-close</v-icon></v-btn>
+            <v-btn color="orange" text @click="comingSoon">Аукціон</v-btn>
+            <v-btn color="orange" dark @click="callUser(ad.uid)">Купити</v-btn>
+          </v-card-actions>
+        </v-card>
+          <!--
           <v-card v-for="ad in ads" :key="ad.id" class="mx-auto adDiv" outlined>
             <v-btn v-if="ad.uid==$firebase.auth().currentUser.uid" @click="deleteAd(ad.id)"><v-icon>mdi-close</v-icon></v-btn>
             <v-list-item two-line>
@@ -94,6 +119,7 @@
               <v-btn color="orange" dark @click="callUser(ad.uid)">Купити</v-btn>
             </v-layout>
           </v-card>
+          -->
           
       </v-flex>
     </v-layout>

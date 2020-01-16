@@ -33,13 +33,21 @@
                 <tbody>
                   <tr v-for="(user,index) in ratings" :key="user.id">
                     <td class="text-left" v-bind:class="'place'+(index+1)">
-                      <v-chip v-if="index<3" color="transparent">
+                      <v-chip color="transparent">
                         <v-icon v-if="index==0" color="orange" x-small>mdi-medal</v-icon>
-                        <v-icon v-else color="green" x-small>mdi-medal</v-icon>
-                      </v-chip>
-                      {{index+1}}
+                        <v-icon v-if="index<3 && index>0" color="green" x-small>mdi-medal</v-icon>
+                        {{index+1}}
+                      </v-chip>  
                     </td>
-                    <td class="text-left" v-bind:class="'place'+(index+1)"><v-icon>mdi-face-profile</v-icon>{{user.name}}</td>
+                    <td class="text-left" v-bind:class="'place'+(index+1)">
+                      <v-chip color="transparent">
+                         <v-avatar size="32px">
+                            <v-icon v-if="!user.avatar">mdi-face-profile</v-icon>
+                             <v-img v-else v-bind:src="user.avatar" width="20"></v-img> 
+                         </v-avatar>
+                        {{user.name}}
+                      </v-chip>
+                    </td>
                     <td class="text-left" v-bind:class="'place'+(index+1)">{{user.bonus}}</td>
                   </tr>
                 </tbody>
@@ -74,7 +82,7 @@ export default {
     let userRates = await this.$store.state.db.collection('users').orderBy("bonus", "desc").get();
     userRates.forEach(async(user) => {
       //eslint-disable-next-line no-console
-      this.ratings.push({'name':user.data().name, 'tokens':user.data().tokens, 'bonus':user.data().bonus})
+      this.ratings.push({'name':user.data().name, 'avatar':user.data().avatar, 'tokens':user.data().tokens, 'bonus':user.data().bonus})
     });
   },
   mounted(){
