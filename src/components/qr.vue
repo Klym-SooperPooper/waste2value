@@ -44,6 +44,8 @@ export default {
   methods: {
      IsJsonString(str) {
         try {
+           //eslint-disable-next-line
+            console.log(str);
             return JSON.parse(str);
         } catch (e) {
             return false;
@@ -55,6 +57,7 @@ export default {
         //var decrypted = this.$encryptor.decrypt(decodedString);
         //eslint-disable-next-line
         decodedString = this.IsJsonString(decodedString);
+        
         let router = this.$router;
         let db = this.$store.state.db;
         if(typeof decodedString === 'object'){
@@ -67,7 +70,8 @@ export default {
             let getUserDocRef = db.collection('users').doc(this.$firebase.auth().currentUser.uid);
             //eslint-disable-next-line
             let getTransferUserDocRef = db.collection('users').doc(decodedString.fromid.toString());
-
+            //make sure we get a number of tokens
+            decodedString.tokens = parseInt(decodedString.tokens);
             db.collection("transactions").add(decodedString)
             .then(function(docRef) {
                //eslint-disable-next-line no-console

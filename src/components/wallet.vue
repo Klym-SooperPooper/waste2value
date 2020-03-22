@@ -14,17 +14,17 @@
         </h1>
         <div>
           <v-chip v-if="$store.state.user.tokens" text-color="#07C01A" color="transparent" style="margin-top:10px">
-            <v-icon color="#07C01A" large>mdi-coin-outline</v-icon>
+            <v-icon color="#07C01A" large>mdi-currency-usd-circle-outline</v-icon>
             <span class="display-1">{{$store.state.user.tokens}}</span>
           </v-chip>
            <v-chip v-else text-color="#07C01A" color="transparent" style="margin-top:10px">
-            <v-icon color="#07C01A" large>mdi-coin-outline</v-icon>
+            <v-icon color="#07C01A" large>mdi-currency-usd-circle-outline</v-icon>
               <span class="display-1">0</span>
           </v-chip>
         </div>  
         <br/>
         <div id="placeHolder"></div>
-        <v-btn dark color="green" @click="dialog = true">Переказати <v-icon>mdi-coin-outline</v-icon></v-btn>
+        <v-btn dark color="green" @click="dialog = true">Переказати <v-icon>mdi-currency-usd-circle-outline</v-icon></v-btn>
         <v-dialog v-model="dialog" color="#fff">
           <v-card>
             <v-card-title v-if="!generatedTokens">Введіть суму токенів</v-card-title>
@@ -55,7 +55,7 @@
             centered
             color="#07C01A"
           >
-            <v-tab><v-icon>mdi-coin-outline</v-icon>Пропозиції</v-tab>
+            <v-tab><v-icon>mdi-currency-usd-circle-outline</v-icon>Пропозиції</v-tab>
             <v-tab><v-icon>mdi-star-face</v-icon>Подарунки</v-tab>
             <v-tab-item>
                 <v-banner one-line>
@@ -74,7 +74,7 @@
                 <p>100% Арабіка,250 мл</p>
                 <template v-slot:actions>
                   <v-chip text-color="orange" color="transparent">
-                   <v-icon color="#07C01A">mdi-coin-outline</v-icon>
+                   <v-icon color="#07C01A">mdi-currency-usd-circle-outline</v-icon>
                       100
                   </v-chip> 
                   <v-btn text color="green accent-4">незабаром</v-btn>
@@ -99,7 +99,7 @@
                 <p>Екотариф. 45 грн</p>
                 <template v-slot:actions>
                   <v-chip text-color="orange" color="transparent">
-                   <v-icon color="#07C01A">mdi-coin-outline</v-icon>
+                   <v-icon color="#07C01A">mdi-currency-usd-circle-outline</v-icon>
                       50
                   </v-chip> 
                   <v-btn text color="green accent-4">незабаром</v-btn>

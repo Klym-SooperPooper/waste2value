@@ -15,11 +15,14 @@
                 <v-icon color="orange" small>mdi-star-face</v-icon>
                 {{$store.state.user.bonus}}
               </v-chip>
-
               <v-chip v-if="$store.state.user.tokens" link to="/wallet" text-color="#07C01A" color="transparent">
-                <v-icon color="#07C01A" small>mdi-coin-outline</v-icon>
+                <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>
                   <span id="topTokens">{{$store.state.user.tokens}}</span>
               </v-chip>
+              <v-chip color="transparent">
+                <v-icon color="orange">mdi-bell-plus</v-icon>
+                <span>1</span>
+              </v-chip>  
               <v-avatar right size="32px" @click="goProfile">
                 <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
                 <v-icon v-show="!$store.state.user.avatar" color="green">mdi-account-circle</v-icon>
@@ -42,7 +45,7 @@
         </v-btn>
 
         <v-btn value="wallet" link icon to="/wallet" small>
-            <v-icon>mdi-coin-outline</v-icon>
+            <v-icon>mdi-currency-usd-circle-outline</v-icon>
         </v-btn>
         
         <v-btn value="find" link icon to="/find" small>

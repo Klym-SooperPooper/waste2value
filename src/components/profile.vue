@@ -64,7 +64,7 @@ export default {
         v => !!v || 'Обов`язкове поле'
     ],
     emailRules: [
-        v => /.+@.+/.test(v) || 'Неправильный e-mail',
+        v => /.+@.+/.test(v) || 'Невірний e-mail',
     ]
   }),
   mounted(){

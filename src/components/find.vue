@@ -10,6 +10,7 @@
         <h1 class="headline" style="color:orange">
           Мапа розміщення контейнерів
         </h1>
+        <v-text-field height="15" outlined id="adLocation" label="Змінити локацію" append-outer-icon="mdi-map-marker"></v-text-field>
         <v-card id="map" class="mb-12" height="300px"></v-card>
         <!--
         <v-card id="map" color="#ebfbed" class="mb-12" height="300px">
@@ -40,9 +41,7 @@ export default {
   },
   methods:{
     initMap: function(){
-      console.log('map loader');
-      console.log(this.$GoogleMapsLoader);
-      this.$GoogleMapsLoader.load(function(google) {
+       this.$GoogleMapsLoader.load(function(google) {
         var map = new google.maps.Map(document.getElementById('map'),
           {
             zoom: 12,

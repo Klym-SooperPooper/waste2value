@@ -30,18 +30,25 @@ import Profile from '@/components/profile'
 import Signup from '@/components/signup'
 import createPersistedState from "vuex-persistedstate";
 import firebase from '@firebase/app'
+import VuetifyGoogleAutocomplete from 'vuetify-google-autocomplete';
+import { firebaseConfig} from './config'
 require('firebase/firestore')
 require('firebase/messaging')
 require('firebase/auth')
 require ('firebase/storage')
-import { firebaseConfig} from './config'
+
 firebase.initializeApp(firebaseConfig);
 var GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyDnzY4zOTwpRwfG0ndEC6xY7qMth71ri8c';
+GoogleMapsLoader.LIBRARIES = ['geometry', 'places'];
 
 //const currentUser = firebase.auth().currentUser;
 Vue.use(VueQrcodeReader)
 Vue.use(Vuex)
+Vue.use(VuetifyGoogleAutocomplete, {
+  apiKey: GoogleMapsLoader.KEY.toString()//'...' // Can also be an object. E.g, for Google Maps Premium API, pass `{ client: <YOUR-CLIENT-ID> }`
+  // version: '...', // Optional
+});
 
 const qrcode = require('qrcode-generator')
 var key = 'Save planet as a result of Common Actions!';
@@ -94,6 +101,7 @@ Object.defineProperty(Vue.prototype, '$rate', { value: 100 });
 Object.defineProperty(Vue.prototype, '$bonusRate', { value: 100 });
 //GoogleMapsLoader
 Object.defineProperty(Vue.prototype, '$GoogleMapsLoader', { value: GoogleMapsLoader });
+Object.defineProperty(Vue.prototype, '$VuetifyGoogleAutocomplete', { value: VuetifyGoogleAutocomplete });
 
 const store = new Vuex.Store({
   state: {

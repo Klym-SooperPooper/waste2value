@@ -8,11 +8,79 @@
         <h1 class="headline" style="color:orange">
             Дошка оголошень
          </h1>
-         <v-btn color="green" dark @click.stop="addPostDialog = true">
+         <v-btn color="green" dark @click.stop="addPost">
           Додати
           <v-icon right>mdi-plus</v-icon>
         </v-btn> 
+          
         <br/>
+        <v-dialog v-model="connectDialog" max-width="300">
+          <v-card>
+                 <v-card-title>Зв`язатись з продавцем</v-card-title>
+                 <v-card-text class="text-center">
+                  <v-btn dark color="green" @click="callUser"><v-icon>mdi-phone</v-icon>Зателефонувати?</v-btn>
+                  <br/>
+                  <v-btn>Лишити свій контакт</v-btn>
+                 </v-card-text>
+          </v-card> 
+        </v-dialog> 
+
+        <v-dialog v-model="auctionDialog" max-width="300">
+          <v-card>
+                 <v-card-title justify="center">Запропонувати ціну</v-card-title>
+                 <v-card-text class="text-center">
+                   <v-text-field height="15" outlined id="adAuctionPrice" @change="validateForm" append-outer-icon="mdi-currency-usd-circle-outline"></v-text-field>
+                  <v-btn dark color="orange">Зробити ставку</v-btn>
+                 </v-card-text>
+          </v-card> 
+        </v-dialog> 
+
+         <v-dialog v-model="responseDialog" max-width="320">
+          <v-card>
+                 <v-card-title justify="center">Зацікавлені покупці</v-card-title>
+                 <v-card-text class="text-center">
+                   <template>
+                      <v-simple-table dense>
+                        <template v-slot:default>
+                            <tbody>
+                              <tr>
+                                <td class="text-left">1</td>
+                                <td class="text-left">Vasiliy</td>
+                                <td class="text-left">
+                                  <v-chip color="transparent">
+                                    <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>900
+                                  </v-chip>
+                                </td>
+                                <td><v-btn text small color="green"><v-icon>mdi-phone</v-icon></v-btn></td>
+                              </tr>
+                              <tr>
+                                <td class="text-left">2</td>
+                                <td class="text-left">Alex</td>
+                                <td class="text-left">
+                                  <v-chip color="transparent">
+                                    <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>800
+                                  </v-chip>
+                                </td>
+                                <td><v-btn text small color="green"><v-icon>mdi-phone</v-icon></v-btn></td>
+                              </tr>
+                              <tr>
+                                <td class="text-left">3</td>
+                                <td class="text-left">Sergey</td>
+                                <td class="text-left">
+                                  <v-chip color="transparent">
+                                    <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>650
+                                  </v-chip>
+                                </td>
+                                <td><v-btn text small color="green"><v-icon>mdi-phone</v-icon></v-btn></td>
+                              </tr>
+                            </tbody>
+                        </template>
+                      </v-simple-table>
+                   </template>
+                 </v-card-text>
+          </v-card> 
+        </v-dialog> 
+
         <v-dialog v-model="addPostDialog" max-width="290">
           <v-card>
             <v-card-title>Додати оголошення</v-card-title>
@@ -23,7 +91,9 @@
                   <v-file-input height="15" outlined id="imageUpload" label="Завантажити фото" @change="previewPhoto($event)"></v-file-input>
                   <v-text-field height="15" outlined id="adTitle" label="Назва оголошення" :rules="adRules" @change="validateForm" required></v-text-field>
                   <v-textarea outlined id="adText" label="Додати опис" :rules="adRules" @change="validateForm" required></v-textarea>
-                  <v-text-field height="15" outlined id="adPrice" label="Вказати ціну" :rules="adRules" @change="validateForm" required></v-text-field>
+                  <v-text-field height="15" outlined id="adPrice" label="Вказати ціну" :rules="adRules" @change="validateForm" required></v-text-field>               
+                  <v-text-field height="15" outlined id="adLocation" @change="validateForm" append-outer-icon="mdi-map-marker"></v-text-field>
+                                    
                   <div class="text-center" v-if="updated">
                     <v-alert color="green lighten-2" height="40" style="padding-top:7px">Оголошення додано!</v-alert>
                   </div>
@@ -75,7 +145,7 @@
             </template>
           </v-range-slider>
         -->
-          <v-card class="mx-auto adDiv" v-for="ad in ads" :key="ad.id" max-width="400">
+          <v-card class="mx-auto adDiv" v-for="ad in ads" :key="ad.id" :class="{ highlighted: ad.uid === $firebase.auth().currentUser.uid}" max-width="400">
           <v-img v-if="ad.image" class="white--text align-end" height="200px" v-bind:src="ad.image">
             <v-card-title><span>{{ad.title}}</span></v-card-title>
           </v-img>
@@ -86,7 +156,7 @@
             <div>{{ad.text}}</div>
           </v-card-text>
           <v-chip color="transparent">
-            <v-icon color="#07C01A" small>mdi-coin-outline</v-icon>
+            <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>
             {{ad.price}}
           </v-chip>
           <br/>
@@ -95,9 +165,21 @@
             Коростень, Житомирська область
           </v-chip>
           <v-card-actions>
-            <v-btn absolute bottom right v-if="ad.uid==$firebase.auth().currentUser.uid" @click="deleteAd(ad.id)"><v-icon>mdi-close</v-icon></v-btn>
-            <v-btn color="orange" text @click="comingSoon">Аукціон</v-btn>
-            <v-btn color="orange" dark @click="callUser(ad.uid)">Купити</v-btn>
+            <!-- public buttons-->
+            <v-row v-if="ad.uid!=$firebase.auth().currentUser.uid" justify="center" align="center">
+              <v-btn outlined color="orange" text @click="auctionAd(ad.uid)">Аукціон</v-btn>
+              <v-btn color="orange" dark @click="contactUser(ad.uid)">Купити</v-btn>
+              <v-btn outlined="" color="green" @click="contactUser(ad.uid)"><v-icon>mdi-truck-delivery-outline</v-icon>Вивезти</v-btn>
+            </v-row>
+            <!-- USER buttons-->
+            <v-row v-else justify="center" align="center">
+              <v-btn depressed outlined color="orange" text @click="responseUser(ad.id)">
+                Аукціон<v-chip color="green" text-color="white" small>2</v-chip>
+              </v-btn>
+             <v-btn color="orange" dark @click="responseUser(ad.id)"><v-icon>mdi-account</v-icon><v-chip dark color="white" text-color="black" small>1</v-chip></v-btn>
+             <v-btn outlined="" color="green" @click="responseUser(ad.id)"><v-icon>mdi-truck-delivery-outline</v-icon><v-chip dark color="white" text-color="green" small>1</v-chip></v-btn>
+             <v-btn text color="orange" @click="deleteAd(ad.id)"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+           </v-row> 
           </v-card-actions>
         </v-card>
           <!--
@@ -112,11 +194,11 @@
             </v-list-item>
              <v-layout justify-end>
               <v-chip text-color="#07C01A" color="transparent">
-                <v-icon color="#07C01A" small>mdi-coin-outline</v-icon>
+                <v-icon color="#07C01A" small>mdi-currency-usd-circle-outline</v-icon>
                   {{ad.price}}
               </v-chip>
               <v-btn color="orange" text @click="comingSoon">Аукціон</v-btn>
-              <v-btn color="orange" dark @click="callUser(ad.uid)">Купити</v-btn>
+              <v-btn color="orange" dark @click="contactUser(ad.uid)">Купити</v-btn>
             </v-layout>
           </v-card>
           -->
@@ -135,6 +217,7 @@ export default {
     deleteID:'6V2sJCPYPM8TOQ8CL35C',
     ads:'',
     min: 0,
+    autocomplete:'',
         max: 1000,
         slider: 400,
         range: [100, 500],
@@ -154,7 +237,11 @@ export default {
     ],
     addPostDialog:false,
     formIsValid:false,
+    connectDialog:false,
+    responseDialog:false,
+    auctionDialog:false,
     valid:true,
+    userPhone:'',
     adRules: [
         v => !!v || 'Обов`язкове поле'
     ]
@@ -175,16 +262,45 @@ export default {
       );
   },
    methods:{
-    callUser(uid){
-      console.log(this.$store.state.db.collection('users'));
-      this.$store.state.db.collection('users').doc(uid).get().then(
+    addPost:function(){
+      this.addPostDialog = true;
+      this.initAutocomplete();
+    }, 
+    initAutocomplete: function(){
+       let ref = this;
+       ref.$GoogleMapsLoader.load(function(google, ref) {
+         var input = document.getElementById('adLocation');
+         ref.autocomplete = new google.maps.places.Autocomplete(input);
+       });
+    }, 
+    callUser(){
+      if(confirm('Подзвонити продавцю на '+this.userPhone+' ?')){
+        window.location.href="tel://"+this.userPhone;
+      }
+    },
+    contactUser(uid){
+      let ref = this;
+      ref.connectDialog = true;
+      ref.$store.state.db.collection('users').doc(uid).get().then(
         (doc)=>{
-          if(confirm('Подзвонити продавцю на '+doc.data().phone+' ?')){
+          ref.userPhone = doc.data().phone; 
+          /*if(confirm('Подзвонити продавцю на '+doc.data().phone+' ?')){
             window.location.href="tel://"+doc.data().phone;
-          }
+          }*/
         }
       );
     }, 
+    responseUser(uid){
+      console.log(uid);
+      this.responseDialog=true;
+    },
+    auctionAd(uid){
+      console.log(uid);
+      this.auctionDialog=true;
+    },
+    getAddressData: function (addressData, placeResultData, id) {
+        alert(addressData+placeResultData+id);
+    },
     validateForm(){
       if (this.$refs.form.validate()) {
         this.formIsValid = true;

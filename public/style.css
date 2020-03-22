@@ -37,6 +37,15 @@ header .layout .v-avatar{
     text-shadow: 1px 1px 1px rgba(13,6,4,0.8);
 }
 
+.v-chip.v-size--small{
+    height: 16px!important;
+    padding:1px 3px;
+}
+
+.highlighted{
+    background-color:#f8fdf7!important;
+}
+
 @media (max-width: 320px){
     .v-item-group.v-bottom-navigation--grow .v-btn{
         width:64px!important;
