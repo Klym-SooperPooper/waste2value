@@ -24,12 +24,13 @@
         </div>  
         <br/>
         <div id="placeHolder"></div>
-        <v-btn dark color="green" @click="dialog = true">Нарахувати зелені <v-icon>mdi-currency-usd-circle-outline</v-icon></v-btn>
+        <v-btn dark color="green" @click="dialog = true">Переказати <v-icon>mdi-currency-usd-circle-outline</v-icon></v-btn>
+        <br/>
+        <v-btn style="margin-top:10px;" dark color="orange" @click="testApi()">Test API <v-icon>mdi-currency-usd-circle-outline</v-icon></v-btn>
         <v-dialog v-model="dialog" color="#fff">
           <v-card>
             <v-card-title v-if="!generatedTokens">Введіть суму токенів</v-card-title>
             <v-card-text v-if="!generatedTokens">
-              <!--
               <v-text-field
                 id="transferTokens"
                 label="Введіть суму"
@@ -38,38 +39,7 @@
                 height="20"
                 v-model="transferTokens"
               ></v-text-field>
-              -->
-              <v-text-field
-                id="recycleItems"
-                label="Введіть кількість пляшок"
-                solo
-                outlined
-                height="20"
-                required
-                @change="calcTokens(recycleItems)"
-                v-model="recycleItems"
-              ></v-text-field>
-
-              <v-text-field
-                id="transferTokens"
-                label="Кількість зелених"
-                solo
-                outlined
-                height="20"
-                required
-                v-model="transferTokens"
-              ></v-text-field>
-
-              <v-text-field
-                id="transferPhone"
-                label="Номер телефона"
-                solo
-                outlined
-                required
-                height="20"
-                v-model="transferPhone"
-              ></v-text-field>
-              <v-btn text color="green" :disabled="(!transferTokens&&!transferPhone) || sendCalc" outlined @click="sendTokens(transferTokens,transferPhone)">Надіслати бонуси</v-btn><br/>
+              <v-btn text color="green" :disabled="!transferTokens" outlined @click="qrGenerate(transferTokens)">Створити <v-icon>mdi-qrcode-scan</v-icon></v-btn><br/>
              </v-card-text>
 
             <div id="qrHolderOuter" v-show="generatedTokens">
@@ -210,10 +180,7 @@ export default {
      generatedTokens:false,
      transferTokens:'',
      snackbar:false,
-     myWallet:0,
-     recycleItems:'',
-     transferPhone:'0500552618',
-     sendCalc:false
+     myWallet:0
    }),
    created(){
     let ref = this;
@@ -238,12 +205,10 @@ export default {
       },
   },
    methods: {
-     calcTokens(recycleItems){
-       if(recycleItems){
-         this.recycleItems = Number.parseInt(recycleItems)
-         this.transferTokens = this.recycleItems*this.$rate;
-         this.bonus  = this.recycleItems*this.$bonusRate;
-      }
+     testApi(){
+      // this.$axios.get('/api?binid=1&count=1&key='+this.$transactionKey).then((response) => {
+        //console.log(response.data)
+      //})
      },
      qrGenerate(transferTokens){
         if(transferTokens && transferTokens <= this.$store.state.user.tokens){
@@ -262,97 +227,6 @@ export default {
           this.transferTokens=0;
           alert('Недостатньо зелених на рахунку');
         } 
-     },
-     sendTokens(transferTokens, transferPhone){
-       this.sendCalc = true;
-       let db = this.$store.state.db;
-       let senderUserId = this.$firebase.auth().currentUser.uid;
-       let transferUserId = false;
-       let ref = this;
-      
-       transferTokens = Number.parseInt(transferTokens);
-       if(transferTokens && transferTokens <= this.$store.state.user.tokens){
-          if(transferPhone){
-            db.collection("users").where('phone','==', transferPhone).get().then(
-              function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                  transferUserId = doc.id;
-                  ref.makeTransfer(senderUserId,transferUserId, transferTokens);
-                }
-                )
-              }).catch(function(error) {
-                //eslint-disable-next-line no-console
-                  console.error("Error: ", error);
-              });
-          }
-        } else {
-          this.transferTokens=0;
-          alert('Недостатньо зелених на рахунку');
-        } 
-     },
-
-     makeTransfer(senderUserId, transferUserId, transferTokens){
-       //get a user to transfer
-      let db = this.$store.state.db; 
-      let ref = this;
-      let transferBonus = this.bonus;
-      let getTransferUserDocRef = db.collection('users').doc(transferUserId);
-      let getSenderUserDocRef = db.collection('users').doc(senderUserId);
-      let saveRecycleTransaction = {'binid':1, 'bonus':this.bonus, 'bonusRate':this.$bonusRate, 'count':this.recycleItems, 'rate':this.$rate, 'tokens':this.transferTokens, 'uid':this.$firebase.auth().currentUser.uid, 'time':Date.now()};                
-      
-      // db.collection("transactions").add({'fromid':senderUserId,'tokens':transferTokens, 'uid':transferUserId, 'time':Date. now()})
-      db.collection("transactions").add(saveRecycleTransaction)
-      .then(function(docRef) {
-        //eslint-disable-next-line no-console
-          console.log(docRef);
-          console.log("Transfer written with ID: ", docRef.id);
-          
-          //run transfer USER transaction
-          return db.runTransaction(function(transaction) {
-              // This code may get re-run multiple times if there are conflicts.
-              //eslint-disable-next-line
-              return transaction.get(getTransferUserDocRef).then(function(getUserDocWallet) {
-                  if (!getUserDocWallet.exists) {
-                      throw "Document does not exist!";
-                  }
-                  var newTokens = getUserDocWallet.data().tokens + transferTokens;
-                  var newBonus = getUserDocWallet.data().bonus + transferBonus;
-                  //eslint-disable-next-line
-                  transaction.update(getTransferUserDocRef, { tokens: newTokens, bonus: newBonus });
-                  console.log("user "+getUserDocWallet.id+" got "+newTokens+" tokens");
-              });
-          }).then(function() {
-              console.log("run sender USER transaction");
-              //run sender USER transaction
-              return db.runTransaction(function(transaction) {
-                  // This code may get re-run multiple times if there are conflicts.
-                  //eslint-disable-next-line
-                  return transaction.get(getSenderUserDocRef).then(function(getSenderUserDoc) {
-                      if (!getSenderUserDoc.exists) {
-                          throw "Document does not exist!";
-                      }
-                      var newTokens = getSenderUserDoc.data().tokens - transferTokens;
-                      //eslint-disable-next-line
-                      transaction.update(getSenderUserDocRef, { tokens: newTokens });
-                      console.log("user "+getSenderUserDoc.id+" transferred "+newTokens+" tokens");
-                  });
-              }).then(function() {
-                  console.log("Transfer & get transaction successfully committed!");
-                  ref.dialog = false;
-                  alert('Зараховано зелених: '+ref.transferTokens);
-                  //run transaction for transfer user
-                  //router.push({path:'wallet', name:'Wallet', params:{'transferred':decodedString.tokens}});
-              }).catch(function(error) {
-                  console.log("Transaction failed: ", error);
-              });
-          }).catch(function(error) {
-              console.log("Transaction failed: ", error);
-          });
-      })
-      .catch(function(error) {
-        //eslint-disable-next-line no-console
-          console.error("Error adding document: ", error);
-      });
      }
    }
   }

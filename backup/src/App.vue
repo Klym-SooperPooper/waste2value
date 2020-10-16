@@ -7,7 +7,7 @@
        <v-btn link icon to="/">
           <v-icon>mdi-qrcode-scan</v-icon>
        </v-btn>
-       <img src="ecodiya.png" height="50"/>
+       <img src="logo.png" height="13"/>
        
          <v-layout v-if="$firebase.auth().currentUser" justify-end style="padding-top:6px">
               <v-chip v-if="$store.state.user.bonus" link to="/rating"  text-color="orange" color="transparent">
@@ -22,12 +22,10 @@
                 <v-icon color="orange">mdi-bell-plus</v-icon>
                 <span>1</span>
               </v-chip>  
-              <v-btn link icon to="/profile" small>
-                <v-avatar right size="32px">
-                  <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
-                  <v-icon v-show="!$store.state.user.avatar" color="green">mdi-account-circle</v-icon>
-                </v-avatar>
-              </v-btn>
+              <v-avatar right size="32px" @click="goProfile">
+                <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
+                <v-icon v-show="!$store.state.user.avatar" color="green">mdi-account-circle</v-icon>
+              </v-avatar>
            </v-layout>
          </v-app-bar> 
     </div>
@@ -72,7 +70,7 @@
     }),  
     methods:{
       goProfile(){
-        window.location.href="/#/profile";
+        window.location.href="/profile";
       }
     } 
     /*async created() {

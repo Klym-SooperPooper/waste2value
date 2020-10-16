@@ -30,7 +30,6 @@ import Rating from '@/components/rating'
 import Profile from '@/components/profile'
 import Api from '@/components/api'
 import Signup from '@/components/signup'
-import Resetpass from '@/components/resetpass'
 import createPersistedState from "vuex-persistedstate";
 import firebase from '@firebase/app'
 import VuetifyGoogleAutocomplete from 'vuetify-google-autocomplete';
@@ -85,8 +84,7 @@ const routes = [
     { path: '/ads', name:'Ads', component: Ads, meta: { requiresAuth: true } },
     { path: '/wallet', name:'Wallet', component: Wallet, meta: { requiresAuth: true } },
     { path: '/rating', name:'Rating', component: Rating, meta: { requiresAuth: true } },
-    { path: '/signup', name:'Signup', component: Signup, meta: {requiresAuth: false}},
-    { path: '/resetpass', name:'Resetpass', component: Resetpass, meta: {requiresAuth: false}}
+    { path: '/signup', name:'Signup', component: Signup, meta: {requiresAuth: false}}
 ]
 const router = new VueRouter({
   /*mode: 'history',*/
@@ -97,26 +95,26 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     let requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     let currentUser = firebase.auth().currentUser;
-      if(currentUser){
-        store.state.db.collection('users').doc(currentUser.uid).get().then(
-        doc=>{
-          store.state.user = doc.data();
-          store.state.user.tokens = doc.data().tokens;
-          if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
-          if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
-          console.log('state changed');
-          console.log(store.state.user);
-        }
-      );
-    } 
-    if (requiresAuth && !firebase.auth().currentUser) { 
-      next('signup');
-    } else {
-      if (!requiresAuth && currentUser) {
-        next();
+    if(currentUser){
+      store.state.db.collection('users').doc(currentUser.uid).get().then(
+      doc=>{
+        store.state.user = doc.data();
+        store.state.user.tokens = doc.data().tokens;
+        if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
+        if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
+        console.log('state changed');
+        console.log(store.state.user);
       }
-      else { next();}
+    );}   
+    if (requiresAuth && (!currentUser || currentUser === null)) { next('/signup');}
+    if (!requiresAuth && currentUser) {
+        if(to.name =='Api'){
+          next();
+        } else {
+          next('/');
+        }
     }
+    else { next();}
 });
 
 Vue.config.productionTip = false;
@@ -126,7 +124,7 @@ Object.defineProperty(Vue.prototype, '$qrcode', { value: qrcode });
 Object.defineProperty(Vue.prototype, '$firebase', { value: firebase });
 Object.defineProperty(Vue.prototype, '$axios', { value: axios });
 //RECYCLING rate
-Object.defineProperty(Vue.prototype, '$rate', { value: 10 });
+Object.defineProperty(Vue.prototype, '$rate', { value: 100 });
 //RECYCLING bonus
 Object.defineProperty(Vue.prototype, '$bonusRate', { value: 100 });
 //TRANSACTION KEY

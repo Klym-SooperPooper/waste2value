@@ -29,8 +29,7 @@
           <img id='profileAvatar' v-else src="" width="150" />
           <v-form ref="form" v-model="valid" lazy-validation>
               <v-file-input outlined id="avatarUpload" label="Загрузить аватар" accept="image/*" @change="uploadAvatar($event)"></v-file-input>
-              <v-text-field v-model="$store.state.user.name" outlined id="userName" label="Имя" :rules="rules" @change="validateForm" required></v-text-field>
-              <v-text-field v-model="$store.state.user.phone" outlined id="userPhone" type="number" label="Телефон" thumb-label :rules="rules" @change="validateForm" required></v-text-field>
+              <v-text-field v-model="$store.state.user.name" outlined id="userName" label="Имя" :rules="nameRules" @change="validateForm" required></v-text-field>
               <v-text-field v-model="$store.state.user.email" outlined id="userEmail" label="E-mail" :rules="emailRules" @change="validateForm"></v-text-field>
               <div class="text-center" v-if="updated">
                 <v-alert color="green lighten-2" height="40" style="padding-top:7px">Інформацію оновлено!</v-alert>
@@ -61,7 +60,7 @@ export default {
     formIsValid:false,
     valid:true,
     //profile:{'name':'', 'email':'', 'phone':'', 'avatar':''},
-    rules: [
+    nameRules: [
         v => !!v || 'Обов`язкове поле'
     ],
     emailRules: [
@@ -105,7 +104,7 @@ export default {
     },
     saveInfo(){
       if(this.formIsValid){
-        this.$store.state.db.collection("users").doc(this.$firebase.auth().currentUser.uid).update({'name':document.getElementById('userName').value, 'email':document.getElementById('userEmail').value, 'phone':document.getElementById('userPhone').value});
+        this.$store.state.db.collection("users").doc(this.$firebase.auth().currentUser.uid).update({'name':document.getElementById('userName').value, 'email':document.getElementById('userEmail').value});
         this.updated=true;
         let redirect = this.$router;
 

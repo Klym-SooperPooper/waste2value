@@ -7,10 +7,10 @@
     >
       <v-flex xs12>
         <v-img
-          :src="require('../assets/logo2.png')"
+          :src="require('../assets/logo.png')"
           class="my-3"
           contain
-          height="180"
+          height="60"
         ></v-img>
       </v-flex>
 
@@ -48,10 +48,9 @@ export default {
 
       try {
         const { capabilities } = await promise
-        console.log(capabilities);
+        alert(capabilities);
         // successfully initialized
       } catch (error) {
-        alert(error.name);
         if (error.name === 'NotAllowedError') {
           // user denied camera access permisson
         } else if (error.name === 'NotFoundError') {
@@ -65,6 +64,7 @@ export default {
         } else if (error.name === 'StreamApiNotSupportedError') {
           // browser seems to be lacking features
         }
+        alert(error.name);
       } finally {
         // hide loading indicator
       }
