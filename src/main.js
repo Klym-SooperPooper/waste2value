@@ -35,13 +35,20 @@ import createPersistedState from "vuex-persistedstate";
 import firebase from '@firebase/app'
 import VuetifyGoogleAutocomplete from 'vuetify-google-autocomplete';
 import { firebaseConfig} from './config'
+
 //import axios from 'axios'
 //import VueAxios from 'vue-axios'
- 
+// var VueCordova = require('vue-cordova');
 require('firebase/firestore')
 require('firebase/messaging')
 require('firebase/auth')
 require ('firebase/storage')
+
+/*
+Vue.cordova = Vue.cordova || {
+  deviceready: false,
+  plugins: []
+};*/
 
 firebase.initializeApp(firebaseConfig);
 var GoogleMapsLoader = require('google-maps');
@@ -50,6 +57,7 @@ GoogleMapsLoader.LIBRARIES = ['geometry', 'places'];
 
 //const currentUser = firebase.auth().currentUser;
 //Vue.use(VueAxios, axios)
+// Vue.use(VueCordova)
 Vue.use(VueQrcodeReader)
 Vue.use(Vuex)
 Vue.use(VuetifyGoogleAutocomplete, {
@@ -97,19 +105,19 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     let requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     let currentUser = firebase.auth().currentUser;
-      if(currentUser){
-        store.state.db.collection('users').doc(currentUser.uid).get().then(
-        doc=>{
-          store.state.user = doc.data();
-          store.state.user.tokens = doc.data().tokens;
-          if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
-          if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
-          console.log('state changed');
-          console.log(store.state.user);
-        }
-      );
-    } 
-    if (requiresAuth && !firebase.auth().currentUser) { 
+    // if(currentUser){
+    //   store.state.db.collection('users').doc(currentUser.uid).get().then(
+    //     doc=>{
+    //       store.state.user = doc.data();
+    //       store.state.user.tokens = doc.data().tokens;
+    //       if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
+    //       if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
+    //       console.log('state changed');
+    //       console.log(store.state.user);
+    //     }
+    //   );
+    // }
+    if (requiresAuth && !firebase.auth().currentUser) {
       next('signup');
     } else {
       if (!requiresAuth && currentUser) {
@@ -122,6 +130,7 @@ router.beforeEach((to, from, next) => {
 Vue.config.productionTip = false;
 //pass encryptor to component
 Object.defineProperty(Vue.prototype, '$encryptor', { value: encryptor });
+Object.defineProperty(Vue.prototype, '$vuecordova', { value: window.cordova });
 Object.defineProperty(Vue.prototype, '$qrcode', { value: qrcode });
 Object.defineProperty(Vue.prototype, '$firebase', { value: firebase });
 Object.defineProperty(Vue.prototype, '$axios', { value: axios });
@@ -141,31 +150,53 @@ const store = new Vuex.Store({
     db:firebase.firestore(),
     user:false
   },
-  plugins: [createPersistedState()]
-});
+  mutations: {
+    loggedIn (state, user) {
+      state.user = user
+    },
+  },
+  plugins: [createPersistedState({
+    reducer: (persistedState) => {
+      const stateMap = new Map(Object.entries(persistedState))
+      const blackList = ['db']
 
-const unsubscribe = firebase.auth().onAuthStateChanged((firebaseUser) => {
-  new Vue({
-    vuetify,
-    router,
-    store,
-    render: h => h(App),
-    created(){
-      if(firebaseUser){
-        store.state.db.collection('users').doc(firebaseUser.uid).get().then(
-          doc=>{
-            store.state.user = doc.data();
-            if(isNaN(store.state.user.tokens)){store.state.user.tokens=0;}
-            if(isNaN(store.state.user.bonus)){store.state.user.bonus=0;}
-            console.log('signed in user');
-            console.log(store.state.user);
-          }
-        )
-      }
+      blackList.forEach((key) => {
+        stateMap.delete(key)
+      })
+
+      return Object.fromEntries(stateMap)
     }
-  }).$mount('#app');
-  unsubscribe();
+  })]
 });
 
+firebase.auth().onAuthStateChanged(async (firebaseUser) => {
+  if (firebaseUser) {
+    const userDoc = await store.state.db.collection('users').doc(firebaseUser.uid).get()
+    if (!userDoc.exists) {
+      console.warn('No user found')
+      const sampleData = {
+        tokens: 0,
+        bonus: 0,
+      }
+      store.commit('loggedIn', sampleData)
+      return false
+    }
 
+    const userData = userDoc.data()
 
+    if (isNaN(userData.tokens)) userData.tokens = 0;
+    if (isNaN(userData.bonus)) userData.bonus = 0;
+
+    store.commit('loggedIn', userData)
+
+    console.log('signed in user');
+    console.log(store.state.user);
+  }
+});
+
+new Vue({
+  vuetify,
+  router,
+  store,
+  render: h => h(App),
+}).$mount('#app');

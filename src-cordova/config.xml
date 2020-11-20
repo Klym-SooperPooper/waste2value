@@ -1,8 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.beeko.beekoapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.beeko.beekoapp" version="1.0.0"
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>EcoДія</name>
     <description>
-       #сміттяцегроші
+        #сміттяцегроші
     </description>
     <author email="klymw2v@gmail.com" href="http://w2v.io">
         W2V team
@@ -10,8 +12,11 @@
     <!-- this hook will point your config.xml to the DevServer on Serve -->
     <hook type="after_prepare" src="../node_modules/vue-cli-plugin-cordova/serve-config-hook.js" />
     <content src="index.html" />
-    <icon src="www/img/logo.png" platform="android" width="57" height="57" density="mdpi" />
+<icon src="www/img/app-icon.png" platform="android" width="57" height="57" density="mdpi" />
+
     <plugin name="cordova-plugin-whitelist" spec="1" />
+<plugin name="cordova-plugin-android-permissions" />
+
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -26,4 +31,7 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+<feature name="Camera">
+    <param name="android-package" value="org.apache.cordova.CameraLauncher" />
+</feature>
 </widget>

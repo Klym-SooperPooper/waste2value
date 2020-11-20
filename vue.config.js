@@ -1,6 +1,8 @@
+const path = require('path')
+
 module.exports = {
   runtimeCompiler: true,
-  publicPath:'/',
+  // publicPath:'/',
   "transpileDependencies": [
     "vuetify"
   ],
@@ -9,5 +11,8 @@ module.exports = {
 
   pluginOptions: {
     cordovaPath: 'src-cordova'
-  }
+  },
+
+  outputDir: path.resolve(__dirname, 'src-cordova', 'www'),
+  assetsDir: '',
 }
