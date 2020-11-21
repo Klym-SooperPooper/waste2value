@@ -13,10 +13,28 @@
 
 			<v-flex mb-4>
 				<div v-if="mountQRReader">
-					<v-alert color="orange lighten-2" style="padding-top: 7px"
-						><v-icon>mdi-qrcode-scan</v-icon>Наведіть на екран на контейнері для
-						автоматичного сканування</v-alert
+					<v-alert
+						v-if="errorStatus"
+						type="error"
+						color="red lighten-2"
+						icon="mdi-alert"
+						>{{ errorStatus }}</v-alert
 					>
+					<v-alert
+						v-else
+						type="info"
+						color="orange lighten-2"
+						icon="mdi-qrcode-scan"
+					>
+						Наведіть на екран на контейнері для автоматичного сканування
+					</v-alert>
+					<v-alert
+						v-if="location"
+						type="info"
+						icon="mdi-information-outline"
+						>Lat: {{ location.latitude }}, long: {{ location.longitude }}</v-alert
+					>
+
 					<qrcode-stream
 						@decode="onDecode"
 						@init="onInit"
@@ -24,8 +42,8 @@
 					></qrcode-stream>
 				</div>
 				<v-btn
-					v-if="deviceReady && !mountQRReader"
-					@click="startCamera"
+					v-if="!mountQRReader"
+					@click="startReading"
 					x-large
 					color="success"
 					dark
@@ -37,11 +55,13 @@
 </template>
 
 <script>
+import { getPermission, Permissions } from '@/util/permissions'
+
 export default {
 	data: () => ({
-		status: "", // Error\loading message
+		errorStatus: "", // Error\loading message
 		mountQRReader: false,
-		deviceReady: false
+		location: null,
 	}),
 	mounted() {
 		/*var qr = this.$qrcode(0, 'H');
@@ -54,64 +74,33 @@ export default {
     qr.make();
     document.getElementById('placeHolder').innerHTML = qr.createImgTag();*/
 
-		document.addEventListener("deviceready", () => {
-			this.deviceReady = true;
-			console.log("Cordova : device is ready !");
-		});
+		// mounted addEventListener могут вызвать утечку, так как надо отвязывать каждый вручную в destroyed
+		// возможно повесить его в main.js/App.vue и через Vuex/Vue.prototype показывать
+		// document.addEventListener("deviceready", () => {
+		// 	this.deviceReady = true;
+		// 	console.log("Cordova : device is ready !");
+		// });
 	},
 	methods: {
-		async startCamera() {
-			// common functions, could be refactored out
-			const getPermissionBooleanStatus = res => status =>
-				status.hasPermission ? res(true) : res(false);
+		async startReading() {
+			console.log(Permissions)
+			const cameraPerm = await getPermission(Permissions.camera)
+			// const locationPerm = await getPermission(Permissions.location)
 
-			const permissions = this.$vuecordova.plugins.permissions;
-			console.log(permissions)
-			if (permissions) {
-				const cameraPromise = new Promise(async resolve => {
-					const alreadyHasCameraPerm = await new Promise((res, rej) =>
-						permissions.checkPermission(
-							permissions.CAMERA,
-							getPermissionBooleanStatus(res),
-							rej
-						)
-					);
-
-					if (alreadyHasCameraPerm) {
-						return resolve(true)
-					}
-					else {
-						const aquiredCameraPerm = await new Promise((res, rej) =>
-							permissions.requestPermission(
-								permissions.CAMERA,
-								getPermissionBooleanStatus(res),
-								rej
-							)
-						);
-						if (!aquiredCameraPerm) {
-							// try-catch approach
-							// return reject(new Error('User forbid camera usage'))
-
-							// true-false response approach
-							return resolve(false);
-						}
-						return resolve(true);
-					}
-				});
-				console.log('perm', await cameraPromise)
-
-				if (await cameraPromise) {
-					this.mountQRReader = !this.mountQRReader;
-				} else {
-					// Show user that they can't scan QR code without camera or provide alternate way (load file, etc)
-					this.status = `We couldn't aquire permission to use camera`;
-				}
+			if (cameraPerm) {
+				this.mountQRReader = !this.mountQRReader
+			} else {
+				// Show user that they can't scan QR code without camera or provide alternate way (load file, etc)
+				this.errorStatus = `We couldn't aquire permission to use camera`;
 			}
-			// handle ios permissions
-			// else if (permissionsIOS) {}
-			else {
-				this.mountQRReader = !this.mountQRReader;
-			}
+
+			// if (locationPerm) {
+				const loc = await new Promise((resolve, reject) => {
+					navigator.geolocation.getCurrentPosition(resolve, reject)
+				})
+				const { latitude, longitude } = loc.coords;
+				this.location = { latitude, longitude }
+			// }
 		},
 		//camera QR init
 		async onInit(promise) {
@@ -122,7 +111,10 @@ export default {
 				console.log(capabilities);
 				// successfully initialized
 			} catch (error) {
-				alert(error.name);
+				// alert(error.name);
+				if (error.name !== 'TypeError') {
+					this.errorStatus = `We couldn't aquire permission to use camera`;
+				}
 				if (error.name === "NotAllowedError") {
 					// user denied camera access permisson
 				} else if (error.name === "NotFoundError") {
@@ -150,6 +142,7 @@ export default {
 			}
 		},
 		onDecode(decodedString) {
+			console.log(decodedString);
 			if (decodedString) {
 				//this.$router.push('Wallet')
 				//var decrypted = this.$encryptor.decrypt(decodedString);
@@ -170,13 +163,13 @@ export default {
 							.where("t", "==", decodedString.t)
 							.where("activated", "==", false)
 							.get()
-							.then(function(querySnapshot) {
-								querySnapshot.forEach(function(doc) {
+							.then(function (querySnapshot) {
+								querySnapshot.forEach(function (doc) {
 									db.collection("qr")
 										.doc(doc.id)
 										.update({
 											uid: ref.$firebase.auth().currentUser.uid,
-											activated: true
+											activated: true,
 										})
 										.then(() => {
 											alert("QR active user is updated!");
@@ -188,11 +181,11 @@ export default {
 												rate: ref.$rate,
 												tokens: ref.$rate,
 												uid: ref.$firebase.auth().currentUser.uid,
-												time: Date.now().toString()
+												time: Date.now().toString(),
 											};
 											db.collection("transactions")
 												.add(decodedString)
-												.then(function(docRef) {
+												.then(function (docRef) {
 													//eslint-disable-next-line no-console
 													console.log(
 														"Transaction written with ID: ",
@@ -200,12 +193,12 @@ export default {
 													);
 													//run TRANSFER USER transaction
 													return db
-														.runTransaction(function(transaction) {
+														.runTransaction(function (transaction) {
 															// This code may get re-run multiple times if there are conflicts.
 															//eslint-disable-next-line
 															return transaction
 																.get(getUserDocRef)
-																.then(function(getUserDoc) {
+																.then(function (getUserDoc) {
 																	if (!getUserDoc.exists) {
 																		throw "Document does not exist!";
 																	}
@@ -218,7 +211,7 @@ export default {
 																	//eslint-disable-next-line
 																	transaction.update(getUserDocRef, {
 																		tokens: newTokens,
-																		bonus: newBonus
+																		bonus: newBonus,
 																	});
 																	console.log(
 																		"user " +
@@ -229,7 +222,7 @@ export default {
 																	);
 																});
 														})
-														.then(function() {
+														.then(function () {
 															console.log(
 																"Lottery user transaction successfully committed!"
 															);
@@ -238,14 +231,14 @@ export default {
 															router.push({
 																path: "wallet",
 																name: "Wallet",
-																params: { transferred: decodedString.tokens }
+																params: { transferred: decodedString.tokens },
 															});
 														})
-														.catch(function(error) {
+														.catch(function (error) {
 															console.log("Transaction failed: ", error);
 														});
 												})
-												.catch(function(error) {
+												.catch(function (error) {
 													//eslint-disable-next-line no-console
 													console.error("Error adding document: ", error);
 												});
@@ -267,18 +260,18 @@ export default {
 						decodedString.tokens = parseInt(decodedString.tokens);
 						db.collection("transactions")
 							.add(decodedString)
-							.then(function(docRef) {
+							.then(function (docRef) {
 								//eslint-disable-next-line no-console
 								console.log("Transaction written with ID: ", docRef.id);
 
 								//run OWNER USER transaction
 								return db
-									.runTransaction(function(transaction) {
+									.runTransaction(function (transaction) {
 										// This code may get re-run multiple times if there are conflicts.
 										//eslint-disable-next-line
 										return transaction
 											.get(getUserDocRef)
-											.then(function(getUserDoc) {
+											.then(function (getUserDoc) {
 												if (!getUserDoc.exists) {
 													throw "Document does not exist!";
 												}
@@ -286,7 +279,7 @@ export default {
 													getUserDoc.data().tokens + decodedString.tokens;
 												//eslint-disable-next-line
 												transaction.update(getUserDocRef, {
-													tokens: newTokens
+													tokens: newTokens,
 												});
 												console.log(
 													"user " +
@@ -297,16 +290,16 @@ export default {
 												);
 											});
 									})
-									.then(function() {
+									.then(function () {
 										console.log("Get user transaction successfully committed!");
 										//run TRANSFER USER transaction
 										return db
-											.runTransaction(function(transaction) {
+											.runTransaction(function (transaction) {
 												// This code may get re-run multiple times if there are conflicts.
 												//eslint-disable-next-line
 												return transaction
 													.get(getTransferUserDocRef)
-													.then(function(getTransferUserDoc) {
+													.then(function (getTransferUserDoc) {
 														if (!getTransferUserDoc.exists) {
 															throw "Document does not exist!";
 														}
@@ -315,7 +308,7 @@ export default {
 															decodedString.tokens;
 														//eslint-disable-next-line
 														transaction.update(getTransferUserDocRef, {
-															tokens: newTokens
+															tokens: newTokens,
 														});
 														console.log(
 															"user " +
@@ -326,7 +319,7 @@ export default {
 														);
 													});
 											})
-											.then(function() {
+											.then(function () {
 												console.log(
 													"Transfer user transaction successfully committed!"
 												);
@@ -334,18 +327,18 @@ export default {
 												router.push({
 													path: "wallet",
 													name: "Wallet",
-													params: { transferred: decodedString.tokens }
+													params: { transferred: decodedString.tokens },
 												});
 											})
-											.catch(function(error) {
+											.catch(function (error) {
 												console.log("Transaction failed: ", error);
 											});
 									})
-									.catch(function(error) {
+									.catch(function (error) {
 										console.log("Transaction failed: ", error);
 									});
 							})
-							.catch(function(error) {
+							.catch(function (error) {
 								//eslint-disable-next-line no-console
 								console.error("Error adding document: ", error);
 							});
@@ -367,17 +360,17 @@ export default {
 						decodedString.bonusRate = this.$bonusRate;
 						db.collection("transactions")
 							.add(decodedString)
-							.then(function(docRef) {
+							.then(function (docRef) {
 								//eslint-disable-next-line no-console
 								console.log("Transaction written with ID: ", docRef.id);
 								//run TRANSFER USER transaction
 								return db
-									.runTransaction(function(transaction) {
+									.runTransaction(function (transaction) {
 										// This code may get re-run multiple times if there are conflicts.
 										//eslint-disable-next-line
 										return transaction
 											.get(getUserDocRef)
-											.then(function(getUserDoc) {
+											.then(function (getUserDoc) {
 												if (!getUserDoc.exists) {
 													throw "Document does not exist!";
 												}
@@ -388,7 +381,7 @@ export default {
 												//eslint-disable-next-line
 												transaction.update(getUserDocRef, {
 													tokens: newTokens,
-													bonus: newBonus
+													bonus: newBonus,
 												});
 												console.log(
 													"user " +
@@ -399,7 +392,7 @@ export default {
 												);
 											});
 									})
-									.then(function() {
+									.then(function () {
 										console.log(
 											"Recycling user transaction successfully committed!"
 										);
@@ -408,14 +401,14 @@ export default {
 										router.push({
 											path: "wallet",
 											name: "Wallet",
-											params: { transferred: decodedString.tokens }
+											params: { transferred: decodedString.tokens },
 										});
 									})
-									.catch(function(error) {
+									.catch(function (error) {
 										console.log("Transaction failed: ", error);
 									});
 							})
-							.catch(function(error) {
+							.catch(function (error) {
 								//eslint-disable-next-line no-console
 								console.error("Error adding document: ", error);
 							});
@@ -426,23 +419,21 @@ export default {
 							.where("pending", "==", true)
 							.where("binid", "==", decodedString.binid)
 							.get()
-							.then(function(querySnapshot) {
+							.then(function (querySnapshot) {
 								if (querySnapshot.exists) {
-									querySnapshot.forEach(function(doc) {
-										db.collection("bin_users")
-											.doc(doc.id)
-											.update({
-												pending: false,
-												active: true,
-												uid: ref.$firebase.auth().currentUser.uid
-											});
+									querySnapshot.forEach(function (doc) {
+										db.collection("bin_users").doc(doc.id).update({
+											pending: false,
+											active: true,
+											uid: ref.$firebase.auth().currentUser.uid,
+										});
 										alert("active user is updated!");
 									});
 								} else {
 									alert("Error getting active doc");
 								}
 							})
-							.catch(function(error) {
+							.catch(function (error) {
 								alert(error);
 								console.log("Error getting active => ", error);
 							});
@@ -453,7 +444,7 @@ export default {
 					alert("QR error");
 				}
 			}
-		}
-	}
+		},
+	},
 };
 </script>
