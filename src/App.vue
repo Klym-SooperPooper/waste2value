@@ -4,9 +4,11 @@
 		<template
 			><div>
 				<v-app-bar>
+					<!--
 					<v-btn link icon to="/">
 						<v-icon>mdi-qrcode-scan</v-icon>
 					</v-btn>
+					-->
 					<img src="./assets/ecodiya.png" height="50" />
 
 					<v-layout
@@ -14,17 +16,20 @@
 						justify-end
 						style="padding-top: 6px"
 					>
+						<!--
 						<v-chip
-							v-if="$store.state.user.bonus"
+							v-if="$store.state.user.pretokens"
 							link
 							to="/rating"
 							text-color="orange"
 							color="transparent"
 						>
 							<v-icon color="orange" small>mdi-star-face</v-icon>
-							{{ $store.state.user.bonus }}
+							{{ $store.state.user.pretokens }}
 						</v-chip>
+						-->
 						<v-chip
+							id="walletCounter"
 							v-if="$store.state.user.tokens"
 							link
 							to="/wallet"
@@ -36,10 +41,19 @@
 							>
 							<span id="topTokens">{{ $store.state.user.tokens }}</span>
 						</v-chip>
+
+						<v-btn to="/recycle" color="green" dark small v-if="$store.state.user.binid">
+							Прийняти
+							<v-icon size="small">mdi-recycle-variant</v-icon>
+						</v-btn>
+						
+						<!--
 						<v-chip color="transparent">
 							<v-icon color="orange">mdi-bell-plus</v-icon>
 							<span>1</span>
 						</v-chip>
+						-->
+						
 						<v-btn link icon to="/profile" small>
 							<v-avatar right size="32px">
 								<v-img
@@ -52,6 +66,7 @@
 								>
 							</v-avatar>
 						</v-btn>
+						
 					</v-layout>
 				</v-app-bar>
 			</div>
@@ -67,12 +82,17 @@
 			fixed
 			color="orange"
 		>
+			<!--
 			<v-btn value="qr" link icon to="/qr" small>
 				<v-icon>mdi-qrcode-scan</v-icon>
 			</v-btn>
-
+			-->
 			<v-btn value="rating" link icon to="/rating" small>
 				<v-icon>mdi-podium-gold</v-icon>
+			</v-btn>
+
+			<v-btn v-if="$store.state.user.binid" value="deals" link icon to="/deals" small>
+				<v-icon>mdi-view-list</v-icon>
 			</v-btn>
 
 			<v-btn value="wallet" link icon to="/wallet" small>
@@ -82,10 +102,11 @@
 			<v-btn value="find" link icon to="/find" small>
 				<v-icon>mdi-map-marker-radius</v-icon>
 			</v-btn>
-
+			<!--
 			<v-btn value="ads" link icon to="/ads" small>
 				<v-icon>mdi-plus-box-outline</v-icon>
 			</v-btn>
+			-->
 		</v-bottom-navigation>
 	</v-app>
 </template>
@@ -104,9 +125,14 @@ export default {
 		goProfile() {
 			window.location.href = "/#/profile";
 		},
+		backButton(){
+			alert(1);
+			this.$router.go(-1);
+		}
 	},
 	mounted() {
 		this.$firebase.auth()
+		document.addEventListener("backbutton", this.backButton, false);
 	}
 	/*async created() {
       let ref = this;

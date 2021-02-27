@@ -1,5 +1,6 @@
 # Настройки сборки
 # apk settings (building)
+# keytool.exe -importcert -file upload_cert.der -keystore <keystorefile>
 apk:=app-release-unsigned.apk
 aligned-apk:=app-release-unsigned-aligned.apk
 signed-apk:=app-release-signed.apk
@@ -10,10 +11,10 @@ cordova-build-path:=src-cordova/platforms/android/app/build/outputs/apk/release
 
 # keystore settings (signing)
 # хранить их тут потенциально небезопасно, но это позволяет подписывать приложение в одну команду
-keystore:=zn-freelance.keystore
-keystore-alias:=zn-frl
-keystore-pass:=y2/Yet3A~S7B+M
-entity:="CN=Anton Abradzin, OU=ZN Dev, O=ZN, L=Unknown, S=Belarus, C=BY"
+keystore:=appkey.keystore
+keystore-alias:=appkey
+keystore-pass:=y2/Get4BA~S8B+M
+entity:="CN=Klym Shabalin, OU=ZN Dev, O=ZN, L=Unknown, S=UA, C=UA"
 
 # firebase
 preview-channel:=test

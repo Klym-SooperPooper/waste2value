@@ -6,7 +6,7 @@
     >
       <v-flex xs12>
         <v-img
-          :src="require('../assets/logo.png')"
+          src="../assets/logo.png"
           class="my-3"
           contain
           height="60"
@@ -41,7 +41,7 @@
                 <v-card color="#ebfbed" class="mb-12" height="125px">
                    <v-icon x-large color="green" style="margin-top:40px">mdi-arrow-down-bold-box</v-icon>
                   </v-card>
-                 Завершили? 
+                 Завершили?
                 <v-btn color="green" @click="e3 = 3" dark>Так</v-btn>
                 <v-btn text>Ні</v-btn>
               </v-stepper-content>
@@ -69,7 +69,7 @@ export default {
   name: 'foo',
 
   data: () => ({
-     e3: 1    
+     e3: 1
   }),
   methods: {
     onDecode (decodedString) {

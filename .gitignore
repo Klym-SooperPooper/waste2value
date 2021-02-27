@@ -26,3 +26,7 @@ yarn-error.log*
 /public/cordova.js
 firebase.json
 /src/config.js
+
+#android key files
+*.keystore
+*.der

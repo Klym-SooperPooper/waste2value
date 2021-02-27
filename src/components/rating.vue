@@ -79,7 +79,7 @@ export default {
         //...
         console.log('error'+error);
     });*/
-    let userRates = await this.$store.state.db.collection('users').orderBy("bonus", "desc").get();
+    let userRates = await this.$store.state.db.collection('users').orderBy("bonus", "desc").limit(10).get();
     userRates.forEach(async(user) => {
       //eslint-disable-next-line no-console
       this.ratings.push({'name':user.data().name, 'avatar':user.data().avatar, 'tokens':user.data().tokens, 'bonus':user.data().bonus})

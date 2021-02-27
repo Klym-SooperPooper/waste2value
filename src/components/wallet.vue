@@ -1,5 +1,5 @@
 <template>
-	<v-container style="height: 500px">
+	<v-container>
 		<v-layout text-center wrap>
 			<v-flex>
 				<v-snackbar
@@ -16,34 +16,59 @@
 				</v-snackbar>
 
 				<h1 class="headline" style="color: orange">Мій гаманець</h1>
+
 				<div>
-					<v-chip
-						v-if="$store.state.user.tokens"
-						text-color="#07C01A"
-						color="transparent"
-						style="margin-top: 10px"
-					>
-						<v-icon color="#07C01A" large
-							>mdi-currency-usd-circle-outline</v-icon
+					<!--
+					<div class="text-center" v-if="$store.state.user.pretokens">
+						<v-alert
+							color="green lighten-2"
+							height="80"
+							style="padding-top: 7px"
+							>Вітаємо у EcoДія!<br/>
+							Ваші зелені нарахуються після перевірки на сортувальній станції
+						</v-alert>
+						<v-chip
+							v-if="$store.state.user.pretokens"
+							text-color="grey"
+							color="transparent"
+							style="margin-top: 10px"
 						>
-						<span class="display-1">{{ user.tokens }}</span>
-					</v-chip>
-					<v-chip
-						v-else
-						text-color="#07C01A"
-						color="transparent"
-						style="margin-top: 10px"
-					>
-						<v-icon color="#07C01A" large
-							>mdi-currency-usd-circle-outline</v-icon
+							<v-icon color="#07C01A" large
+								>mdi-currency-usd-circle-outline</v-icon
+							>
+							<span class="display-1">{{ user.pretokens }}</span>
+						</v-chip>
+					</div>
+					-->
+					<div>
+						<v-chip
+							v-if="$store.state.user.tokens"
+							text-color="#07C01A"
+							color="transparent"
+							style="margin-top: 10px"
 						>
-						<span class="display-1">0</span>
-					</v-chip>
+							<v-icon color="#07C01A" large
+								>mdi-currency-usd-circle-outline</v-icon
+							>
+							<span class="display-1">{{ user.tokens }}</span>
+						</v-chip>
+						<v-chip
+							v-else
+							text-color="#07C01A"
+							color="transparent"
+							style="margin-top: 10px"
+						>
+							<v-icon color="#07C01A" large
+								>mdi-currency-usd-circle-outline</v-icon
+							>
+							<span class="display-1">0</span>
+						</v-chip>
+					</div>
 				</div>
 				<br />
 				<div id="placeHolder"></div>
-				<v-btn dark color="green" @click="dialog = true"
-					>Нарахувати зелені
+				<!-- @click="dialog = true" -->
+				<v-btn dark color="grey">Надіслати зелені
 					<v-icon>mdi-currency-usd-circle-outline</v-icon></v-btn
 				>
 				<v-dialog v-model="dialog" color="#fff">
@@ -116,46 +141,47 @@
 					</v-card>
 				</v-dialog>
 				<br /><br />
+				<img src="../assets/cash-icon.png" height="80" />
+				<div style="text-align:center; color:green">Курс: 1 гривня = 100 зелених</div>
+						<div class="text-center">
+						<v-alert dense text type="success">
+							За нараховані бали незабаром ви зможете отримати певні винагороди: екотовари, поповнення мобільного рахунку або <strong>готівку на власну банківську картку</strong>.
+						</v-alert>
+				</div>
 				<v-card>
 					<v-tabs background-color="white" centered color="#07C01A">
 						<v-tab
 							><v-icon>mdi-currency-usd-circle-outline</v-icon>Пропозиції</v-tab
 						>
-						<v-tab><v-icon>mdi-star-face</v-icon>Подарунки</v-tab>
+						<!--<v-tab><v-icon>mdi-star-face</v-icon>Подарунки</v-tab>-->
 						<v-tab-item>
-							<v-banner one-line>
-								<v-avatar slot="icon" size="40">
-									<v-icon icon="mdi-coffee" color="#8b6138">
-										mdi-coffee
-									</v-icon>
-								</v-avatar>
-								<div class="headline text-left">Кава</div>
-								<p>100% Арабіка,250 мл</p>
-								<template v-slot:actions>
-									<v-chip text-color="orange" color="transparent">
-										<v-icon color="#07C01A"
-											>mdi-currency-usd-circle-outline</v-icon
-										>
-										100
-									</v-chip>
-									<v-btn text color="green accent-4">незабаром</v-btn>
-								</template>
-							</v-banner>
-
 							<v-banner one-line>
 								<v-avatar slot="icon" color="ref" size="40">
 									<v-icon icon="mdi-ticket" color="green" size="40">
 										mdi-cellphone
 									</v-icon>
 								</v-avatar>
-								<div class="headline text-left">Поповнення</div>
-								<p>Екотариф. 45 грн</p>
+								<div class="headline text-left">Поповнення мобільного</div>
+								<p>Екотариф</p>
+								<template v-slot:actions>
+									<v-btn dark color="green accent-4">поповнити</v-btn>
+								</template>
+							</v-banner>
+
+							<v-banner one-line>
+								<v-avatar slot="icon" size="40">
+									<v-icon icon="mdi-emoticon-cool" color="orange">
+										mdi-emoticon-cool
+									</v-icon>
+								</v-avatar>
+								<div class="headline text-left">Екотовари</div>
+								<p></p>
 								<template v-slot:actions>
 									<v-chip text-color="orange" color="transparent">
 										<v-icon color="#07C01A"
 											>mdi-currency-usd-circle-outline</v-icon
 										>
-										50
+										
 									</v-chip>
 									<v-btn text color="green accent-4">незабаром</v-btn>
 								</template>
@@ -287,6 +313,7 @@ export default {
 						const query = await db
 							.collection('users')
 							.where('phone', '==', transferPhone)
+							.limit(1)
 							.get();
 
 						await Promise.all(
@@ -319,6 +346,7 @@ export default {
 			let getReceiverUserDocRef = db.collection('users').doc(transferUserId);
 			let saveRecycleTransaction = {
 				binid: 1,
+				fromid:senderUserId,
 				bonus: this.bonus,
 				bonusRate: this.$bonusRate,
 				count: this.recycleItems,
@@ -326,7 +354,7 @@ export default {
 				// стоит или использовать аргумент или убрать его из функции
 				// tokens: this.transferTokens,
 				tokens: transferTokens,
-				uid: this.user.uid,
+				uid: transferUserId,
 				time: Date.now(),
 			};
 

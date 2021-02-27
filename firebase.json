@@ -7,7 +7,7 @@
     "indexes": "n"
   },
   "hosting": {
-    "public": "src-cordova/www",
+    "public": "src-cordova/platforms/browser/www",
     "ignore": [
       "firebase.json",
       "**/.*",

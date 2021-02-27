@@ -7,8 +7,8 @@
        <v-btn link icon to="/">
           <v-icon>mdi-qrcode-scan</v-icon>
        </v-btn>
-       <img src="logo.png" height="13"/>
-       
+       <img src="./assets/logo.png" height="13"/>
+
          <v-layout v-if="$firebase.auth().currentUser" justify-end style="padding-top:6px">
               <v-chip v-if="$store.state.user.bonus" link to="/rating"  text-color="orange" color="transparent">
                 <v-icon color="orange" small>mdi-star-face</v-icon>
@@ -21,13 +21,13 @@
               <v-chip color="transparent">
                 <v-icon color="orange">mdi-bell-plus</v-icon>
                 <span>1</span>
-              </v-chip>  
+              </v-chip>
               <v-avatar right size="32px" @click="goProfile">
-                <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>               
+                <v-img id="topAvatar" v-show="$store.state.user.avatar" v-bind:src="$store.state.user.avatar"></v-img>
                 <v-icon v-show="!$store.state.user.avatar" color="green">mdi-account-circle</v-icon>
               </v-avatar>
            </v-layout>
-         </v-app-bar> 
+         </v-app-bar>
     </div>
     </template>
     <v-content style="margin-bottom:60px">
@@ -38,7 +38,7 @@
         <v-btn value="qr" link icon to="/qr" small>
            <v-icon>mdi-qrcode-scan</v-icon>
         </v-btn>
-        
+
         <v-btn value="rating" link icon to="/rating" small>
             <v-icon>mdi-podium-gold</v-icon>
         </v-btn>
@@ -46,7 +46,7 @@
         <v-btn value="wallet" link icon to="/wallet" small>
             <v-icon>mdi-currency-usd-circle-outline</v-icon>
         </v-btn>
-        
+
         <v-btn value="find" link icon to="/find" small>
             <v-icon>mdi-map-marker-radius</v-icon>
         </v-btn>
@@ -67,12 +67,12 @@
      publicPath: process.env.BASE_URL,
      bottomNav: false,
      appUser:false
-    }),  
+    }),
     methods:{
       goProfile(){
         window.location.href="/profile";
       }
-    } 
+    }
     /*async created() {
       let ref = this;
       if(ref.$firebase.auth().currentUser){
@@ -83,6 +83,6 @@
         );
       }
     },*/
-    
+
   };
 </script>

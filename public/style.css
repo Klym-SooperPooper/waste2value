@@ -70,6 +70,61 @@ header .layout .v-avatar{
     background-color:#f8fdf7!important;
 }
 
+.v-application .blue.info-raw{
+    padding:5px;
+}
+
+.v-application .v-slider__track-fill.primary, .v-application .primary.v-slider__thumb{
+    background:green!important;
+}
+
+.v-application .primary.lighten-3.v-slider__track-background{
+    background-color: #54e463!important;
+}
+
+.main-label{
+    padding-left:15px;
+}
+
+#update-form .v-input__slot{
+    margin:0px auto;
+    width:90%;
+}
+
+#personal{
+    background: rgba(169,253,216,0.1);
+    padding:15px;
+    margin-bottom: 15px;
+    border-radius: 20px;
+}
+
+#deals-list .row {
+    margin-left:20px;
+}
+
+#deals-list .deal-item{
+    margin-bottom:7px;
+}
+
+#deals-list .deal-item:nth-child(even){
+    background:rgb(218, 243, 210);
+}
+
+.blink {
+    animation: blink-animation 1s steps(5, start) infinite;
+    -webkit-animation: blink-animation 1s steps(5, start) infinite;
+}
+@keyframes blink-animation {
+    to {
+        visibility: hidden;
+    }
+}
+@-webkit-keyframes blink-animation {
+    to {
+        visibility: hidden;
+    }
+}
+
 @media (max-width: 320px){
     .v-item-group.v-bottom-navigation--grow .v-btn{
         width:64px!important;

@@ -64,6 +64,7 @@ export default {
 		location: null,
 	}),
 	mounted() {
+		document.addEventListener("backbutton", this.backButton, false);
 		/*var qr = this.$qrcode(0, 'H');
     var transaction = {binid:1, count:1,  time:Date. now()};
     //var transfer = {fromid:1, tokens:1,  time:Date. now()};
@@ -82,6 +83,10 @@ export default {
 		// });
 	},
 	methods: {
+		backButton(){
+			alert(1);
+			this.$router.go(-1);
+		},
 		async startReading() {
 			console.log(Permissions)
 			const cameraPerm = await getPermission(Permissions.camera)

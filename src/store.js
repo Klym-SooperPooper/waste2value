@@ -6,11 +6,47 @@ import createPersistedState from 'vuex-persistedstate';
 
 Vue.use(Vuex);
 
+let unsubscribeHandle = null;
 const store = new Vuex.Store({
 	state: {
 		qr: 1,
 		db,
 		user: null,
+	},
+	actions: {
+		async processFirebaseUser({ commit }, firebaseUser) {
+			if (unsubscribeHandle) {
+				unsubscribeHandle();
+			}
+			if (firebaseUser) {
+				const userDoc = await db
+					.collection('users')
+					.doc(firebaseUser.uid)
+					.get();
+
+				if (!userDoc.exists) {
+					// Случай когда пользователь не зарегистрировался через систему, нужно либо провести через процесс регистрации либо проигнорировать
+					return false;
+				}
+
+				const userData = userDoc.data();
+
+				if (isNaN(userData.tokens)) userData.tokens = 0;
+				if (isNaN(userData.bonus)) userData.bonus = 0;
+
+				commit('userUpdated', { ...userData, uid: firebaseUser.uid });
+				unsubscribeHandle = db
+					.collection('users')
+					.doc(firebaseUser.uid)
+					.onSnapshot((doc) => {
+						const userData = doc.data();
+						commit('userUpdated', { ...userData, uid: firebaseUser.uid });
+					});
+			} else {
+				// Sign out
+				commit('userUpdated', null);
+			}
+		}
 	},
 	mutations: {
 		userUpdated(state, user) {
@@ -33,39 +69,6 @@ const store = new Vuex.Store({
 	],
 });
 
-let listener = null;
-firebase.auth().onAuthStateChanged(async (firebaseUser) => {
-	if (listener) {
-		listener.remove();
-	}
-	if (firebaseUser) {
-		const userDoc = await store.state.db
-			.collection('users')
-			.doc(firebaseUser.uid)
-			.get();
-
-		if (!userDoc.exists) {
-			// Случай когда пользователь не зарегистрировался через систему, нужно либо провести через процесс регистрации либо проигнорировать
-			return false;
-		}
-
-		const userData = userDoc.data();
-
-		if (isNaN(userData.tokens)) userData.tokens = 0;
-		if (isNaN(userData.bonus)) userData.bonus = 0;
-
-		store.commit('userUpdated', { ...userData, uid: firebaseUser.uid });
-		listener = store.state.db
-			.collection('users')
-			.doc(firebaseUser.uid)
-			.onSnapshot((doc) => {
-				const userData = doc.data();
-				store.commit('userUpdated', { ...userData, uid: firebaseUser.uid });
-			});
-	} else {
-		// Sign out
-		store.commit('userUpdated', null);
-	}
-});
+firebase.auth().onAuthStateChanged(firebaseUser => store.dispatch('processFirebaseUser', firebaseUser));
 
 export default store;

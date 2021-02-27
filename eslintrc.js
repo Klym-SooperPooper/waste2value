@@ -7,6 +7,7 @@ module.exports = {
 	rules: {
 		'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
 		'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+		'no-mixed-spaces-and-tabs': 'off',
 		'vue/no-unused-vars': 'off',
 	},
 	parserOptions: {
